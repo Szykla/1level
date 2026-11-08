@@ -121,9 +121,9 @@ h3 { font-size: 24px; font-weight: 800; line-height: 1.2; }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; color: var(--text); }
 .logo svg { width: auto; height: 58px; overflow: visible; }
 @media (max-width: 560px) { .logo svg { height: 50px; } }
-.logo-dot { fill: #079D5C; }
+.logo-dot, .logo-disc { fill: #8DC63F; }
 .logo { transition: opacity 300ms var(--ease); }
-.logo:hover .logo-dot { transform: scale(1.05); }
+.logo:hover .logo-dot { transform: scale(1.2); }
 .logo-dot { transform-box: fill-box; transform-origin: center; transition: transform 300ms var(--ease); }
 .logo b { font: 700 15px/1.1 var(--font-display); font-stretch: 125%; letter-spacing: .16em; }
 .nav { display: flex; gap: 4px; }
