@@ -77,16 +77,18 @@
 
   // Anfahrt map: municipalities from swisstopo/BFS boundaries, ZVV zone per municipality, price per zone
   const svg = document.getElementById('zh-map'), out = document.getElementById('map-out'), q = document.getElementById('map-q');
-  const BANDS = [[20, 'Stadt Zürich und Zone 111'], [30, 'Nahe Agglomeration'], [45, 'Mittlere Distanz'], [60, 'Entfernte Zonen']];
-  const ZONE_PRICE = { 20: [110, 111], 30: [112, 117, 121, 122, 130, 140, 141, 150, 151, 154, 155], 45: [118, 120, 123, 131, 135, 142, 152, 156] };
-  const priceOf = z => { for (const p in ZONE_PRICE) if (ZONE_PRICE[p].includes(z)) return +p; return 60; };
+  // Travel flat rates from 1.11.2026 (plus the effective travel time, see note under the map)
+  const BANDS = [[12, 'Stadt Zürich, Zonen 110 und 111'], [13, 'Zonen 112, 117, 121, 122, 130, 140, 150, 154, 155'], [15, 'Zonen 118, 120, 123, 131, 135'], [25, 'Alle anderen ZVV-Zonen']];
+  const ZONE_PRICE = { 12: [110, 111], 13: [112, 117, 121, 122, 130, 140, 150, 154, 155], 15: [118, 120, 123, 131, 135] };
+  const priceOf = z => { for (const p in ZONE_PRICE) if (ZONE_PRICE[p].includes(z)) return +p; return 25; };
+  const extra = z => ZONE_PRICE[12].includes(z) ? 'Bis 15 Minuten Anfahrt. Bei längerer Anfahrt CHF 9 plus Anfahrtszeit.' : 'Pauschale plus effektive Anfahrtszeit';
   const NS = 'http://www.w3.org/2000/svg', el = (n, a) => { const x = document.createElementNS(NS, n); for (const k in a) x.setAttribute(k, a[k]); return x; };
   const munis = [];
   if (window.ZH && svg) {
     const d = window.ZH;
     svg.setAttribute('viewBox', `0 0 ${d.w} ${d.h}`);
     const g = el('g', {});
-    d.munis.forEach((m, i) => { const p = el('path', { d: m.d, class: 'm', 'data-p': priceOf(m.z), 'data-z': m.z, 'data-i': i }); const t = el('title', {}); t.textContent = `${m.n}: CHF ${priceOf(m.z)}`; p.append(t); g.append(p); munis.push({ ...m, el: p }); });
+    d.munis.forEach((m, i) => { const p = el('path', { d: m.d, class: 'm', 'data-p': priceOf(m.z), 'data-z': m.z, 'data-i': i }); const t = el('title', {}); t.textContent = `${m.n}: ab CHF ${priceOf(m.z)}`; p.append(t); g.append(p); munis.push({ ...m, el: p }); });
     d.lakes.forEach(l => g.append(el('path', { d: l, class: 'lake' })));
     const [hx, hy] = d.home, home = el('g', { class: 'home' });
     home.append(el('circle', { cx: hx, cy: hy, r: 7 }));
@@ -106,7 +108,7 @@
     if (!m) return;
     svg.querySelectorAll(`[data-z="${m.z}"]`).forEach(x => x.classList.add('zone-hot'));
     m.el.classList.add('hot');
-    out.innerHTML = `<small>Zone ${m.z}${m.z === 110 ? ' · Stadt Zürich' : m.z === 120 ? ' · Stadt Winterthur' : ''}</small><span class="t">${m.n}</span><span class="p">CHF ${priceOf(m.z)}</span><small>Anfahrtskosten</small>`;
+    out.innerHTML = `<small>Zone ${m.z}${m.z === 110 ? ' · Stadt Zürich' : m.z === 120 ? ' · Stadt Winterthur' : ''}</small><span class="t">${m.n}</span><span class="p">CHF ${priceOf(m.z)}</span><small>${extra(m.z)}</small>`;
     if (fill) q.value = m.n;
   };
   svg && svg.addEventListener('click', e => { const p = e.target.closest('.m'); if (p) pick(munis[+p.dataset.i], true); });
@@ -119,7 +121,7 @@
 
   // Google Maps is embedded directly in index.html (loads lazily when scrolled near)
 
-  // Callback form: next six days without Sunday, hours 10 to 21
+  // Callback form: next six days without Sunday, hours 10 to 18 (office hours end at 19:00)
   const DAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'], LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
   const daysBox = document.getElementById('cb-days'), timesBox = document.getElementById('cb-times');
   const now = new Date(); let day = null, time = null;
@@ -127,7 +129,7 @@
   const label = d => `${LONG[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`;
   daysBox.innerHTML = dates.map((d, i) => `<button type="button" class="slot" data-i="${i}" aria-pressed="false">${i === 0 && d.toDateString() === now.toDateString() ? 'Heute' : DAYS[d.getDay()]}<small>${d.getDate()}.${d.getMonth() + 1}.</small></button>`).join('');
   const drawTimes = () => {
-    const hours = []; for (let h = 10; h <= 21; h++) hours.push(h);
+    const hours = []; for (let h = 10; h <= 18; h++) hours.push(h);
     const isToday = day && day.toDateString() === now.toDateString();
     timesBox.innerHTML = hours.map(h => { const past = isToday && h <= now.getHours(); return `<button type="button" class="slot" data-h="${h}" aria-pressed="${time === h && !past}" ${past ? 'disabled style="opacity:.4;cursor:not-allowed"' : ''}>${h}:00</button>`; }).join('');
   };
@@ -214,7 +216,7 @@
   sync();
 })();
 
-// Live availability: Monday to Saturday, 10 to 22, Zurich time
+// Office hours: Monday to Saturday, 10:00 to 19:00, Zurich time
 (function () {
   var els = document.querySelectorAll('[data-status]');
   if (!els.length) return;
@@ -222,11 +224,11 @@
     var parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Zurich', weekday: 'short', hour: 'numeric', hour12: false }).formatToParts(new Date());
     var wd = 0, h = 0, IDX = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
     parts.forEach(function (p) { if (p.type === 'weekday') wd = IDX[p.value]; if (p.type === 'hour') h = parseInt(p.value, 10) % 24; });
-    var open = wd >= 1 && wd <= 6 && h >= 10 && h < 22, text;
-    if (open) text = 'Wir sind jetzt erreichbar.';
+    var open = wd >= 1 && wd <= 6 && h >= 10 && h < 19, text;
+    if (open) text = 'Jetzt ist Bürozeit, bis 19:00 Uhr.';
     else {
-      var when = (wd === 0 || (wd === 6 && h >= 22)) ? 'am Montag ab 10 Uhr' : (h < 10 ? 'heute ab 10 Uhr' : 'morgen ab 10 Uhr');
-      text = 'Wir sind wieder ' + when + ' erreichbar. Auf WhatsApp können Sie jederzeit schreiben.';
+      var when = (wd === 0 || (wd === 6 && h >= 19)) ? 'am Montag ab 10:00 Uhr' : (h < 10 ? 'heute ab 10:00 Uhr' : 'morgen ab 10:00 Uhr');
+      text = 'Bürozeit wieder ' + when + '. Auf WhatsApp können Sie jederzeit schreiben.';
     }
     els.forEach(function (el) { el.setAttribute('data-state', open ? 'open' : 'closed'); el.querySelector('.status-text').textContent = text; });
   } catch (e) {}
