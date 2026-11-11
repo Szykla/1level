@@ -121,6 +121,8 @@ h3 { font-size: 24px; font-weight: 800; line-height: 1.2; }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; color: var(--text); }
 .logo svg { width: auto; height: 58px; overflow: visible; }
 @media (max-width: 560px) { .logo svg { height: 50px; } }
+.logo-disc { fill: #A1BF36; }
+.logo-ink { fill: #000; }
 .logo { transition: opacity 300ms var(--ease); }
 .logo:hover .logo-dot { transform: scale(1.2); }
 .logo-dot { transform-box: fill-box; transform-origin: center; transition: transform 300ms var(--ease); }
@@ -527,11 +529,8 @@ legend { font-weight: 700; font-size: 16px; padding: 0; margin-bottom: 6px; }
 @media (max-width: 900px) { .price-note { margin: 4px 20px 16px; } }
 
 /* 2026-11 Rolf's changes: original logo, round portrait, travel note under the map */
-.logo svg { height: 66px; }
-@media (max-width: 560px) { .logo svg { height: 52px; } }
-.logo-mark { --logo-ink: #3B2416; --logo-phone: #B2CC1E; --logo-dot: #111111; }
-[data-theme="dark"] .logo-mark { --logo-ink: #F2EDE4; --logo-dot: #B2CC1E; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-mark { --logo-ink: #F2EDE4; --logo-dot: #B2CC1E; } }
+.logo svg { height: 62px; }
+@media (max-width: 560px) { .logo svg { height: 50px; } }
 .hero-photo img { aspect-ratio: 1; border-radius: 50%; object-position: 50% 50%; }
 .hero-photo figcaption { display: grid; gap: 2px; }
 .hero-photo figcaption b { font-size: 19px; }
